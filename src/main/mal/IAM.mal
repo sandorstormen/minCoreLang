@@ -111,49 +111,6 @@ category IAM {
             subprivileges.attemptUnsafeUserActivity
     }
 
-    asset Privileges extends IAMObject
-      user info: "A privileges asset can be associated with another IAMObject to reason about a specific subset of given privileges on Applications and Data."
-      modeler info: "The privileges asset is not meant to be used normally when assigning permissions. Identities and Groups should be directly associated with the relevant assets. The purpose of the Privileges asset is to be used as a speculative asset when reasoning about additional privileges that a particular Group or Identity may have as a result of either poor configurations or the attacker's actions."
-    {
-      # notPresent [Disabled]
-        user info: "Prevent unsafe user activity too if the Privileges are assumed to not exist."
-        +>  successfulUnsafeUserActivity
-
-      | assume {C,I,A}
-        user info: "After authentication or compromise assume its privileges."
-        developer info: "Assume identity/group the privileges are associated with since the privileges are simply an extension of it."
-        +>  IAMOwners.attemptAssume
-
-      | attemptUnsafeUserActivity @hidden
-        developer info: "Intermediate attack step to allow for defenses."
-        ->  successfulUnsafeUserActivity
-
-      & successfulUnsafeUserActivity @hidden
-        developer info: "Intermediate attack step to model defenses."
-        ->  unsafeUserActivity
-
-      | unsafeUserActivity
-        user info: "Propagate unsafe user activity to any Applications or subset of privileges associated with these Privileges."
-        ->  execPrivApps.attemptUnsafeUserActivity,
-            highPrivApps.attemptUnsafeUserActivity,
-            lowPrivApps.attemptUnsafeUserActivity,
-            subprivileges.attemptUnsafeUserActivity
-    }
-
-    asset Group extends IAMObject
-      user info: "A group is a way to group together identities and/or other groups. This allows the expression of hierarchical IAM (structured inheritance)."
-      modeler info: "Groups can be used instead of nested identities to make the model more intuitive and clearer to understand."
-    {
-      | assume {C,I,A}
-        user info: "If an identity of a group is compromised then the whole group(i.e. all other privileges of the group) should be considered as compromised. Furthermore, the parent groups should also be considered compromised."
-        developer info: "The parent groups should be compromised because all the privileges of the parent groups are inherited on the children groups but lower children groups should not be compromised because lower levels might have inherited plus additional privileges."
-        +>  parentGroup.attemptAssume
-
-      & lockoutFromMembers @hidden
-        developer info: "If all of the Identities belonging to a Group are lockedout we assume that the Group as a whole is lockedout."
-        ->  attemptLockout
-    }
-
     asset Credentials extends Information
       user info: "Credentials can be used to get access to an Identity, but they can also be used as an encryption/signing key for Data."
       modeler info: "Credentials represent a variety of access control mechanism(e.g. username and password pair, keycards, biometric data)."

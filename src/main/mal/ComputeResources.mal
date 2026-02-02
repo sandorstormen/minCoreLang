@@ -155,35 +155,6 @@ category ComputeResources {
             hostedData.attemptWrite
     }
 
-    asset SoftwareProduct extends Information
-      user info: "A software product that certain applications are using which represents a specific software package, potentially even a version, which can be associated with certain vulnerabilities or have its deployment repositories compromised in a software supply chain attack."
-      developer info: "This asset was introduced in order to improve the usability of the language and enable software supply chain attacks."
-    {
-      | compromiseApplications
-        user info: "If the origin of a software product is compromised (modified maliciously) this is interpreted as a software supply chain attack and therefore the associated applications should also be fully compromised."
-        ->  softApplications.attemptFullAccessFromSupplyChainCompromise
-
-      | write @Override
-        user info: "If the attacker is able to write the software product they are able to execute a software supply chain attack on the applications associated with it."
-        +>  compromiseApplications
-
-      /* The following three attack steps are used to trigger the
-       * SoftwareProduct's SoftwareVulnerabilities' impacts on each of the
-       * Applications associated with the SoftwareProduct separately.
-       */
-      | readApplications @hidden
-        developer info: "This is an intermediary attack step to propagate read on all of the associated applications if the vulnerability has a confidentiality impact."
-        ->  softApplications.attemptReadFromSoftProdVulnerability
-
-      | modifyApplications @hidden
-        developer info: "This is an intermediary attack step to propagate modify on all of the associated applications if the vulnerability has an integrity impact."
-        ->  softApplications.attemptModifyFromSoftProdVulnerability
-
-      | denyApplications @hidden
-        developer info: "This is an intermediary attack step to propagate deny on all of the associated applications if the vulnerability has an availability impact."
-        ->  softApplications.attemptDenyFromSoftProdVulnerability
-    }
-
     asset Application
       user info: "An application models any type of software process or component, from firmware and operating systems to plugins and sessions."
       modeler info: "Applications are some of the most common assets in models due to their versatility and scope."
