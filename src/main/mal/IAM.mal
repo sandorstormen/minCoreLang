@@ -42,8 +42,7 @@ category IAM {
             writePrivData.authorizedWriteFromIAM,
             writePrivData.authorizedApplicationRespondConnectFromIAM,
             deletePrivData.authorizedDeleteFromIAM,
-            managedIAMs.attemptAssume,
-            subprivileges.attemptAssume
+            managedIAMs.attemptAssume
 
       | deny
         user info: "Denying Identity, Group, or Privileges means that they are unavailable to legitimate users and which may be locked out as a result."
@@ -64,8 +63,7 @@ category IAM {
       | lockout {A}
         user info: "The Identity, Group, or Privileges has been locked out and cannot be used by legitimate users. This means that the applications that they can execute and data they can read might also be denied if all of the access roles that could execute or read them, respectively, have been locked out."
         ->  execPrivApps.denyFromLockout,
-            readPrivData.denyFromLockout,
-            subprivileges.lockout
+            readPrivData.denyFromLockout
     }
 
     asset Identity extends IAMObject
@@ -79,8 +77,7 @@ category IAM {
       | assume {C,I,A}
         user info: "After authentication or compromise of an account/identity, assume its privileges."
         developer info: "This is both legitimate and illegitimate access! Also assume all the privileges of the parent identities (on the above level/inherited by this identity) because those represent the group of (inherited) roles."
-        +>  parentId.attemptAssume,
-            memberOf.attemptAssume
+        +>  parentId.attemptAssume
 
       & lockoutFromCredentials @hidden
         developer info: "Only lockout an identity if all of the Credentials that could be used to authenticate have been denied."
@@ -88,7 +85,6 @@ category IAM {
 
       | lockout
         user info: "If all of the Identities belonging to a Group are lockedout we assume that the Group as a whole is lockedout."
-        +>  memberOf.lockoutFromMembers
 
       !E missingUser @hidden
         developer info: "If there are no Users asociated with this Identity we make the worst case scenario assumption regarding the strength of the Credentials belonging to it."
@@ -107,51 +103,7 @@ category IAM {
         user info: "Propagate unsafe user activity to any Applications or subset of privileges associated with this Identity."
         ->  execPrivApps.attemptUnsafeUserActivity,
             highPrivApps.attemptUnsafeUserActivity,
-            lowPrivApps.attemptUnsafeUserActivity,
-            subprivileges.attemptUnsafeUserActivity
-    }
-
-    asset Privileges extends IAMObject
-      user info: "A privileges asset can be associated with another IAMObject to reason about a specific subset of given privileges on Applications and Data."
-      modeler info: "The privileges asset is not meant to be used normally when assigning permissions. Identities and Groups should be directly associated with the relevant assets. The purpose of the Privileges asset is to be used as a speculative asset when reasoning about additional privileges that a particular Group or Identity may have as a result of either poor configurations or the attacker's actions."
-    {
-      # notPresent [Disabled]
-        user info: "Prevent unsafe user activity too if the Privileges are assumed to not exist."
-        +>  successfulUnsafeUserActivity
-
-      | assume {C,I,A}
-        user info: "After authentication or compromise assume its privileges."
-        developer info: "Assume identity/group the privileges are associated with since the privileges are simply an extension of it."
-        +>  IAMOwners.attemptAssume
-
-      | attemptUnsafeUserActivity @hidden
-        developer info: "Intermediate attack step to allow for defenses."
-        ->  successfulUnsafeUserActivity
-
-      & successfulUnsafeUserActivity @hidden
-        developer info: "Intermediate attack step to model defenses."
-        ->  unsafeUserActivity
-
-      | unsafeUserActivity
-        user info: "Propagate unsafe user activity to any Applications or subset of privileges associated with these Privileges."
-        ->  execPrivApps.attemptUnsafeUserActivity,
-            highPrivApps.attemptUnsafeUserActivity,
-            lowPrivApps.attemptUnsafeUserActivity,
-            subprivileges.attemptUnsafeUserActivity
-    }
-
-    asset Group extends IAMObject
-      user info: "A group is a way to group together identities and/or other groups. This allows the expression of hierarchical IAM (structured inheritance)."
-      modeler info: "Groups can be used instead of nested identities to make the model more intuitive and clearer to understand."
-    {
-      | assume {C,I,A}
-        user info: "If an identity of a group is compromised then the whole group(i.e. all other privileges of the group) should be considered as compromised. Furthermore, the parent groups should also be considered compromised."
-        developer info: "The parent groups should be compromised because all the privileges of the parent groups are inherited on the children groups but lower children groups should not be compromised because lower levels might have inherited plus additional privileges."
-        +>  parentGroup.attemptAssume
-
-      & lockoutFromMembers @hidden
-        developer info: "If all of the Identities belonging to a Group are lockedout we assume that the Group as a whole is lockedout."
-        ->  attemptLockout
+            lowPrivApps.attemptUnsafeUserActivity
     }
 
     asset Credentials extends Information
@@ -270,8 +222,6 @@ associations {
   Identity         [identities]           * <-- IdentityCredentials   --> *    [credentials]            Credentials
   Identity         [parentId]             * <-- CanAssume             --> *    [childId]                Identity
       user info: "Starting from a parent Identity, the child Identities can be assumed due to inheritance."
-  Group            [memberOf]             * <-- MemberOf              --> *    [groupIds]               Identity
-  Group            [parentGroup]          * <-- MemberOf              --> *    [childGroups]            Group
   // Then, Access Control on application level
   IAMObject        [executionPrivIAMs]    * <-- ExecutionPrivilegeAccess       --> * [execPrivApps]     Application
       user info: "Every application executes on a system with privileges of a specified identity on the system. If the application is compromised then the privileges should be compromised."
@@ -284,8 +234,6 @@ associations {
   IAMObject        [writingIAMs]          * <-- WritePrivileges       --> *    [writePrivData]          Data
   IAMObject        [deletingIAMs]         * <-- DeletePrivileges      --> *    [deletePrivData]         Data
   // Associations for the Privileges asset
-  IAMObject        [IAMOwners]            * <-- HasPrivileges         --> *    [subprivileges]          Privileges
-      user info: "Identities, Groups, and Privileges may have a subset of Privileges that we logically separate to model specific scenarios, such as partial lockouts or speculating about possible privileges."
   // Self-referential associations for the IAMObject asset
   IAMObject        [managers]             * <-- AccountManagement     --> *    [managedIAMs]            IAMObject
       user info: "Identities, Groups, and Privileges may have account management roles for other Identities, Groups, and Privileges."

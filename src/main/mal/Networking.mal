@@ -174,19 +174,6 @@ category Networking {
             transitData.attemptApplicationRespondConnect
     }
 
-    asset RoutingFirewall extends Application
-      user info: "A routing firewall specifies a router with firewall capabilities that connects many networks."
-    {
-      | deny {A}
-       user info: "A DoS attack should cascade on the connected networks and associated connections"
-        ->  connectionRules.attemptDeny
-
-      | fullAccess {I, A}
-        developer info: "If full access is achieved on RoutingFirewall then it is 0wned and all connections can be allowed! This can happen by compromising the manager application."
-        +>  (connectionRules.networks \/ connectionRules.outNetworks \/ connectionRules.inNetworks \/ connectionRules.diodeInNetworks).accessUninspected,
-            connectionRules.applications.networkConnectUninspected
-    }
-
     asset ConnectionRule
       user info: "This asset is used to model firewall rules between Applications and/or Networks. The association selected (bi/uni-directional) only describes the connection initiation."
       developer info: "This asset is mainly used to model the functionality of a network connection through a firewall. If Data is added, then it also models the data in transit."
@@ -299,10 +286,6 @@ category Networking {
 
 associations {
   // ### Networking associations
-  RoutingFirewall  [routingFirewalls]  0..1 <-- FirewallConnectionRule --> *    [connectionRules]       ConnectionRule
-      user info: "A routing firewall has routing or firewall rules specified by connections between networks or applications respectively."
-  RoutingFirewall  [managedRoutingFw]     * <-- ManagedBy             --> 0..1 [managerApp]             Application
-      user info: "A routing firewall can have an admin/manager interface (application) that is accessible from a network location."
   Network          [networks]             * <-- NetworkExposure       --> *    [applications]           Application
       user info: "An application can communicate / be exposed on a network."
       modeler info: "This is DEPRECATED and should only be used by fully aware modelers."
