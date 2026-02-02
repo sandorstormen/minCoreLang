@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#id: "org.mal-lang.coreLang"
+#id: "org.mal-lang.minCoreLang"
 #version: "1.0.0"
 
-include "coreLang.mal"
+include "minCoreLang.mal"
