@@ -176,9 +176,6 @@ category ComputeResources {
             networkAccess,
             successfulUnsafeUserActivity,
             fullAccessFromSupplyChainCompromise,
-            readFromSoftProdVulnerability,
-            modifyFromSoftProdVulnerability,
-            denyFromSoftProdVulnerability,
             successfulApplicationRespondConnectThroughData,
             successfulAuthorizedApplicationRespondConnectThroughData,
             successfulRead,
@@ -196,12 +193,7 @@ category ComputeResources {
 
       | useVulnerability
         user info: "Try to exploit the associated vulnerabilities."
-        developer info: "This includes vulnerabilities associated with the SoftwareProduct that this Application is running as well."
-        ->  allVulnerabilities().attemptAbuse,
-            attemptSoftwareProductAbuse,
-            readFromSoftProdVulnerability,
-            modifyFromSoftProdVulnerability,
-            denyFromSoftProdVulnerability
+        ->  allVulnerabilities().attemptAbuse
 
       | attemptReverseReach @entrypoint
         user info: "The attacker is reachable from this Application therefore start propagating reverse reach from it. Reverse reach is used to determine whether or not the attacker can be reached by the user."
@@ -229,14 +221,12 @@ category ComputeResources {
         ->  localAccess,
             specificAccessFromLocalConnection,
             attemptUseVulnerability, // Attempt to exploit all the vulnerabilities associated with the Application
-            allVulnerabilities().localAccessAchieved,
-            softwareProductVulnerabilityLocalAccessAchieved
+            allVulnerabilities().localAccessAchieved
 
       | networkConnectUninspected
         user info: "An attacker can connect to any network exposed application and try to authenticate or trigger vulnerabilities."
         ->  attemptUseVulnerability, // Attempt to exploit all the vulnerabilities associated with the Application
             allVulnerabilities().networkAccessAchieved,
-            softwareProductVulnerabilityNetworkAccessAchieved,
             networkConnect,
             specificAccessNetworkConnect
 
@@ -297,15 +287,13 @@ category ComputeResources {
         user info: "The attacker is able to authenticate with the appropriate high-level privileges."
         ->  localAccess,
             networkAccess,
-            allVulnerabilities().highPrivilegesAchieved,
-            softwareProductVulnerabilityHighPrivilegesAchieved
+            allVulnerabilities().highPrivilegesAchieved
 
       | specificAccessAuthenticate
         user info: "The attacker is able to authenticate with the appropriate low-level privileges."
         ->  specificAccessFromLocalConnection,
             specificAccessFromNetworkConnection,
-            allVulnerabilities().lowPrivilegesAchieved,
-            softwareProductVulnerabilityLowPrivilegesAchieved
+            allVulnerabilities().lowPrivilegesAchieved
 
       & localAccess @hidden
         developer info: "Intermediate attack steps for modeling the two requirements (reachability and authentication) for full access."
@@ -332,7 +320,6 @@ category ComputeResources {
       | physicalAccessAchieved @hidden
         developer info: "Intermediate attack step used to propagate physical access throughout application nesting."
         ->  allVulnerabilities().physicalAccessAchieved,
-            softwareProductVulnerabilityPhysicalAccessAchieved,
             appExecutedApps.physicalAccessAchieved
 
       | attemptUnsafeUserActivity @hidden
@@ -384,71 +371,6 @@ category ComputeResources {
       & fullAccessFromSupplyChainCompromise @hidden
         developer info: "Intermediate attack step."
         ->  fullAccess
-
-      /* Intermediate attack steps to allow SoftwareProduct Vulnerabilities to
-       * only happen after each Applications is reached by the attacker.
-       */
-      | attemptReadFromSoftProdVulnerability @hidden
-        developer info: "Intermediate attack step to allow for defenses."
-        ->  readFromSoftProdVulnerability
-
-      | attemptModifyFromSoftProdVulnerability @hidden
-        developer info: "Intermediate attack step to allow for defenses."
-        ->  modifyFromSoftProdVulnerability
-
-      | attemptDenyFromSoftProdVulnerability @hidden
-        developer info: "Intermediate attack step to allow for defenses."
-        ->  denyFromSoftProdVulnerability
-
-      /* The seven following attack steps were implemented to trigger
-       * SoftwareVulnerabilities on a SoftwareProduct on each Application
-       * associated with the SoftwareProduct individually.
-       */
-      | softwareProductVulnerabilityLocalAccessAchieved @hidden
-        developer info: "Intermediate attack step used to conditionally trigger SoftwareProduct vulnerabilities separately for each application."
-        ->  softwareProductAbuse
-
-      | softwareProductVulnerabilityNetworkAccessAchieved @hidden
-        developer info: "Intermediate attack step used to conditionally trigger SoftwareProduct vulnerabilities separately for each application."
-        ->  softwareProductAbuse
-
-      | softwareProductVulnerabilityPhysicalAccessAchieved @hidden
-        developer info: "Intermediate attack step used to conditionally trigger SoftwareProduct vulnerabilities separately for each application."
-        ->  softwareProductAbuse
-
-      | softwareProductVulnerabilityLowPrivilegesAchieved @hidden
-        developer info: "Intermediate attack step used to conditionally trigger SoftwareProduct vulnerabilities separately for each application."
-        ->  softwareProductAbuse
-
-      | softwareProductVulnerabilityHighPrivilegesAchieved @hidden
-        developer info: "Intermediate attack step used to conditionally trigger SoftwareProduct vulnerabilities separately for each application."
-        -> softwareProductAbuse
-
-      | softwareProductVulnerabilityUserInteractionAchieved @hidden
-        developer info: "Intermediate attack step used to conditionally trigger SoftwareProduct vulnerabilities separately for each application."
-        ->  softwareProductAbuse
-
-      | attemptSoftwareProductAbuse @hidden
-        developer info: "Intermediate attack step used to conditionally trigger SoftwareProduct vulnerabilities separately for each application."
-        ->  softwareProductAbuse
-
-      & softwareProductAbuse @hidden
-        developer info: "Intermediate attack step used to conditionally trigger SoftwareProduct vulnerabilities separately for each application."
-        ->  readFromSoftProdVulnerability,
-            modifyFromSoftProdVulnerability,
-            denyFromSoftProdVulnerability
-
-      & readFromSoftProdVulnerability @hidden
-        developer info: "Intermediate attack step to handle SoftwareProduct existence."
-        ->  attemptRead
-
-      & modifyFromSoftProdVulnerability @hidden
-        developer info: "Intermediate attack step to handle SoftwareProduct existence."
-        ->  attemptModify
-
-      & denyFromSoftProdVulnerability @hidden
-        developer info: "Intermediate attack step to handle SoftwareProduct existence."
-        ->  attemptDeny
 
       | attemptApplicationRespondConnectThroughData @hidden
         developer info: "Intermediate attack step to allow for defenses."
