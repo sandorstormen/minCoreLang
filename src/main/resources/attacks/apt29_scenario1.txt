@@ -1,0 +1,104 @@
+Legitimate User:successfulSocialEngineering
+Legitimate User:socialEngineering
+Legitimate User:unsafeUserActivity
+Local User 2:attemptUnsafeUserActivity
+Local User 2:successfulUnsafeUserActivity
+Local User 2:unsafeUserActivity
+Win10 1903 Workstation 2:attemptUnsafeUserActivity
+LAN:attemptReverseReach
+LAN:reverseReach
+CR:attemptReverseReach
+CR:reverseReach
+Win10 1903 Workstation 2:attemptReverseReach
+Win10 1903 Workstation 2:successfulReverseReach
+Win10 1903 Workstation 2:reverseReach
+Win10 1903 Workstation 2:attackerUnsafeUserActivityCapabilityWithReverseReach
+Win10 1903 Workstation 2:attackerUnsafeUserActivityCapability
+Win10 1903 Workstation 2:successfulUnsafeUserActivity
+Win10 1903 Workstation 2:unsafeUserActivity
+# --- T1204 END ---
+Win10 1903 Workstation 2:networkConnectUninspected
+Win10 1903 Workstation 2:networkConnect
+# --- T1204? ---
+Local User 2:attemptAssume
+Local User 2:successfulAssume
+Local User 2:assume
+Win10 1903 Workstation 2:specificAccessNetworkConnect
+Win10 1903 Workstation 2:specificAccessAuthenticate
+Win10 1903 Workstation 2:specificAccessFromNetworkConnection
+Win10 1903 Workstation 2:specificAccess
+Win10 1903 Workstation 2:accessNetworkAndConnections
+CR:attemptAccessNetworksUninspected
+CR:successfulAccessNetworksUninspected
+CR:accessNetworksUninspected
+# --- UAC Bypass START ---
+Win10 1903 Workstation 2:attemptUseVulnerability
+Win10 1903 Workstation 2:successfulUseVulnerability
+Win10 1903 Workstation 2:useVulnerability
+UAC Bypass:networkAccessAchieved
+UAC Bypass:lowPrivilegesAchieved
+UAC Bypass:attemptAbuse
+UAC Bypass:abuse
+UAC Bypass:attemptExploit
+UAC Bypass:exploitTrivially
+UAC Bypass:exploit
+UAC Bypass:impact
+UAC Bypass:read
+# --- UAC Bypass END ---
+# --- T1003 START ---
+Win10 1903 Workstation 2:read
+Google Chrome:attemptRead
+Google Chrome:successfulRead
+Google Chrome:read
+Google Chrome:attemptReverseReach
+Google Chrome:successfulReverseReach
+Google Chrome:reverseReach
+Chrome password manager:attemptRead
+Chrome password manager:successfulRead
+Chrome password manager:read
+Chrome password manager:attemptReverseReach
+Chrome password manager:reverseReach
+Chrome password manager:extract
+Web Passwords:read
+Web Passwords:extract
+PFX Certificate:read
+PFX Certificate:extract
+Registry:attemptRead
+Registry:successfulRead
+Registry:read
+Registry:attemptReverseReach
+Registry:reverseReach
+Registry:extract
+NTLM Hash:read
+NTLM Hash:extract
+# --- T1003 END ---
+NTLM Hash:attemptUse
+NTLM Hash:use
+Local Admin Creds:guessCredentialsFromHash
+Local Admin Creds:guessCredentials
+Local Admin Creds:attemptUse
+Local Admin Creds:use
+Local Admin 1:attemptAssume
+Local Admin 1:successfulAssume
+Local Admin 1:assume
+Win10 1903 Workstation 1:authenticate
+Local:attemptConnectToApplicationsUninspected
+Local:connectToApplicationsUninspected
+Win10 1903 Workstation 1:networkConnectUninspected
+Win10 1903 Workstation 1:networkConnect
+Win10 1903 Workstation 1:networkAccess
+Win10 1903 Workstation 1:fullAccess
+Win10 1903 Workstation 1:attemptReverseReach
+Win10 1903 Workstation 1:successfulReverseReach
+Win10 1903 Workstation 1:reverseReach
+# --- T1005 START ---
+Win10 1903 Workstation 1:attemptRead
+Win10 1903 Workstation 1:successfulRead
+Win10 1903 Workstation 1:read
+Office Documents:attemptRead
+Office Documents:successfulRead
+Office Documents:read
+Office Documents:attemptReverseReach
+Office Documents:reverseReach
+Office Documents:extract
+# --- T1005 END ---
