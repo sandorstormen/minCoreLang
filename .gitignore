@@ -46,3 +46,7 @@ buildNumber.properties
 *.pyzw
 *.pyzwz
 *.pyzwzw
+
+logs/*
+
+.vscode/*
