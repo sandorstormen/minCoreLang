@@ -34,20 +34,20 @@ category User {
         ->  securityAwarenessBypassed,
             weakCredentials
 
-      | bypassSecurityAwareness [VeryHardAndUncertain]
+      | action bypassSecurityAwareness [VeryHardAndUncertain]
         user info: "Security awareness can be bypassed."
         ->  securityAwarenessBypassed
 
-      | securityAwarenessBypassed @hidden
+      | effect securityAwarenessBypassed @hidden
         developer info: "Security awareness is bypassed either because it was not set, the attacker was able to circumvent it through additional effort, or we simply assume that everyone has an off day every now and then."
         ->  successfulSocialEngineering,
             successfulDeliverMaliciousRemovableMedia
 
-      | oneCredentialCompromised @hidden
+      | effect oneCredentialCompromised @hidden
         developer info: "This intermediate attack step is needed in order to block passwordReuseCompromise when no other credential is first compromised."
         ->  passwordReuseCompromise
 
-      & passwordReuseCompromise @hidden
+      & effect passwordReuseCompromise @hidden
         developer info: "If one reused credential of that user is compromised then, all other credentials of that user can also be compromised."
         ->  userIds.credentials.attemptCredentialsReuse
 
@@ -55,44 +55,44 @@ category User {
         developer info: "Intermediate attack step that defines the strength of all of the Credentials associated with the user. This is inversely proportional with the user's securityAwareness defense."
         ->  userIds.credentials.weakCredentials
 
-      | attemptSocialEngineering @entrypoint
+      | effect attemptSocialEngineering @entrypoint
         user info: "An attacker can try to perform social engineering techniques such as phishing and inducing the user to perform malicious actions."
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         modeler info: "Social engineering is modeled by having the attacker trigger this attack step on the target Users."
         ->  successfulSocialEngineering,
             bypassSecurityAwareness
 
-      & successfulSocialEngineering @hidden
+      & effect successfulSocialEngineering @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  socialEngineering
 
-      | socialEngineering @hidden
+      | action socialEngineering @hidden
         developer info: "Currently social engineering entails phishing credentials and tricking the user into unsafe actions that expose Applications to the attacker. In the future, other social engineering techniques should be added to this attack step."
         ->  credentialTheft,
             unsafeUserActivity
 
-      | attemptDeliverMaliciousRemovableMedia @entrypoint
+      | effect attemptDeliverMaliciousRemovableMedia @entrypoint
         user info: "An attacker can try to deliver a removable media drive(i.e. USB drive) containing malicious code to a location accessible to the target users."
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         modeler info: "Social engineering is modeled by having the attacker trigger this attack step on hthe target Users."
         ->  successfulDeliverMaliciousRemovableMedia,
             bypassSecurityAwareness
 
-      & successfulDeliverMaliciousRemovableMedia @hidden
+      & effect successfulDeliverMaliciousRemovableMedia @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  deliverMaliciousRemovableMedia
 
-      | deliverMaliciousRemovableMedia @hidden [Exponential(0.01)]
+      | action deliverMaliciousRemovableMedia @hidden [Exponential(0.01)]
         developer info: "The user is assumed to connect the removable media containing the malicious code to all of the hardware systems that they have access to. Since this is expected to unwittingly happen as part of their normal operations the attack exposes their regular security context."
         ->  userIds.attemptAssume,
             hardwareSystems.attemptUnsafeUserActivity
 
-      | credentialTheft @hidden [HardAndUncertain]
+      | action credentialTheft @hidden [HardAndUncertain]
         developer info: "Trick the user into providing their credentials."
         modeler info: "Distribution: Bernoulli(0.5) * Exponential(0.1), source: Sommestad (2011) Password authentication attacks: a survey of attacks and when they will succeed, suggest to use Bernoulli(0.05)"
         ->  userIds.credentials.attemptCredentialTheft
 
-      | unsafeUserActivity @hidden [Exponential(0.03)]
+      | action unsafeUserActivity @hidden [Exponential(0.03)]
         developer info: "The user can engage in unsafe behaviour that could allow the attacker to gain access to the applications the user has access to."
         modeler info: "If the attacker is not able to reach (or be reached) via any of the Applications this garnered access does not materialise into any actual attack vectors."
         ->  userIds.attemptAssume,

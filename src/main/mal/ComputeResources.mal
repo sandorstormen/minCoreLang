@@ -196,17 +196,17 @@ category ComputeResources {
         user info: "Try to exploit the associated vulnerabilities."
         ->  allVulnerabilities().attemptAbuse
 
-      | attemptReverseReach @entrypoint
+      | effect attemptReverseReach @entrypoint
         user info: "The attacker is reachable from this Application therefore start propagating reverse reach from it. Reverse reach is used to determine whether or not the attacker can be reached by the user."
         developer info: "Intermediate attack step to allow for defenses."
         modeler info: "If the entry point of the attacker is an Application this attack step needs to be explicitly called on it by the modeler in order to have reverse reach start propagating from the Application to the rest of the assets in the model. This is the case because no other attack step on the Application asset triggers this attack step."
         ->  successfulReverseReach
 
-      & successfulReverseReach @hidden
+      & effect successfulReverseReach @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  reverseReach
 
-      | reverseReach @hidden
+      | effect reverseReach @hidden
         developer info: "Reverse reach is used to determine whether or not the attacker can be reached by the user. Reverse reach propagates toward outgoing or bidirectional communications."
         ->  networks.attemptReverseReach,
             ingoingApplicationConnections().attemptReverseReach,
@@ -304,7 +304,7 @@ category ComputeResources {
         developer info: "Intermediate attack steps for modeling the two requirements (reachability and authentication) for full access."
         ->  fullAccess
 
-      | fullAccess @entrypoint {C,I,A}
+      | action fullAccess @entrypoint {C,I,A}
         user info: "Full access on the Application means the attacker has complete control of the application and can perform any actions within its execution context."
         modeler info: "It is common in models for the attacker to be granted full access on an Application, representing their own tools, that is connected to the Internet to explore possible attack vectors."
         ->  attemptRead,
@@ -323,31 +323,31 @@ category ComputeResources {
         ->  allVulnerabilities().physicalAccessAchieved,
             appExecutedApps.physicalAccessAchieved
 
-      | attemptUnsafeUserActivity @hidden
+      | effect attemptUnsafeUserActivity @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  successfulUnsafeUserActivity,
             attackerUnsafeUserActivityCapabilityWithReverseReach, // If the user can reach the attacker via networking assets this makes the unsafe user actions much easier to perform
             attackerUnsafeUserActivityCapabilityWithoutReverseReach // Without being able to reach the attacker the User can still perform malicious actions on their behalf, but it is much more complicated
 
-      & successfulUnsafeUserActivity @hidden
+      & effect successfulUnsafeUserActivity @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  unsafeUserActivity
 
-      | unsafeUserActivity
+      | action unsafeUserActivity
         user info: "The unsafe actions of users on this application open it up to attacks and enable vulnerabilities that require user interaction."
         ->  localConnect,
             networkConnectUninspected,
             allVulnerabilities().userInteractionAchieved
 
-      | attackerUnsafeUserActivityCapability @hidden
+      | effect attackerUnsafeUserActivityCapability @hidden
         developer info: "The impacts of the user's unsafe actions are greatly limited if there are no channels through which the attacker can be reached by the unwitting user."
         ->  successfulUnsafeUserActivity
 
-      & attackerUnsafeUserActivityCapabilityWithReverseReach @hidden
+      & action attackerUnsafeUserActivityCapabilityWithReverseReach @hidden
         developer info: "The attacker can be reached from this application and can therefore more easily exploit the unsafe user actions."
         ->  attackerUnsafeUserActivityCapability
 
-      | attackerUnsafeUserActivityCapabilityWithoutReverseReach @hidden [VeryHardAndUncertain]
+      | action attackerUnsafeUserActivityCapabilityWithoutReverseReach @hidden [VeryHardAndUncertain]
         developer info: "The attacker cannot be reached from this application. This means that the autonomous malicious code must either be able to do reconnaissance on the fly or the reconnaissance was done beforehand and coded into it. This is much more complex and difficult than the situation where the attacker is reachable from the application which restricts the capabilities of being successful. Important Note: This step should never directly or indirectly lead to reverse reach as it would fulfil the attacker interactivity requirements it is missing."
         ->  attackerUnsafeUserActivityCapability
 
@@ -372,95 +372,95 @@ category ComputeResources {
         developer info: "Intermediate attack step."
         ->  fullAccess
 
-      | attemptApplicationRespondConnectThroughData @hidden
+      | effect attemptApplicationRespondConnectThroughData @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulApplicationRespondConnectThroughData
 
-      & successfulApplicationRespondConnectThroughData @hidden
+      & effect successfulApplicationRespondConnectThroughData @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  applicationRespondConnectThroughData
 
-      | applicationRespondConnectThroughData @hidden
+      | action applicationRespondConnectThroughData @hidden
         developer info: "After full access on the application received data can be used to try a connect through respond to the client side application."
         ->  receivedData.attemptApplicationRespondConnect
 
-      | attemptAuthorizedApplicationRespondConnectThroughData @hidden
+      | effect attemptAuthorizedApplicationRespondConnectThroughData @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulAuthorizedApplicationRespondConnectThroughData
 
-      & successfulAuthorizedApplicationRespondConnectThroughData @hidden
+      & effect successfulAuthorizedApplicationRespondConnectThroughData @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  authorizedApplicationRespondConnectThroughData
 
-      | authorizedApplicationRespondConnectThroughData @hidden
+      | action authorizedApplicationRespondConnectThroughData @hidden
         developer info: "After specific access on the application received data can be used to try a connect through respond to the client side application. To succeed the attacker must also attain write privileges on the received data."
         ->  receivedData.authorizedApplicationRespondConnectFromApplication
 
-      | attemptRead @hidden
+      | effect attemptRead @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulRead
 
-      & successfulRead @hidden
+      & effect successfulRead @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  read
 
-      | read {C}
+      | action read {C}
         user info: "The attacker can read some or all of this service's (and executed by this) source code and/or data (both local and sent/received)."
         ->  containedData.attemptRead,
             appExecutedApps.attemptRead, // Read all applications executed by this (host) application
             sentData.attemptRead, // Both sent and received Data can be read
             receivedData.attemptRead
 
-      | specificAccessRead {C}
+      | action specificAccessRead {C}
         user info: "The attacker can read the service's source code and/or sent and received Data, given the necessary permissions"
         ->  containedData.authorizedReadFromApplication,
             sentData.authorizedReadFromApplication, // Both Data sent and received can be read given the necessary permissions
             receivedData.authorizedReadFromApplication
 
-      | attemptModify @hidden
+      | effect attemptModify @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulModify
 
-      & successfulModify @hidden
+      & effect successfulModify @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  modify
 
-      | modify {I}
+      | action modify {I}
         user info: "The attacker can modify some or all of this service's (and executed by this) source code and/or data."
         ->  fullAccess,
             containedData.attemptWrite,
             appExecutedApps.attemptModify, // Gain access on all applications executed by this (host) application
             sentData.attemptWrite // Sent Data can be written/modified
 
-      | specificAccessModify {I}
+      | action specificAccessModify {I}
         user info: "The attacker can modify the service's source code and/or sent  Data, given the necessary permissions"
         ->  containedData.authorizedWriteFromApplication,
             sentData.authorizedWriteFromApplication // Sent Data can be written given the necessary permissions
 
-      | attemptDeny @hidden
+      | effect attemptDeny @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulDeny
 
-      & successfulDeny @hidden
+      & effect successfulDeny @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  deny
 
-      | deny {A}
+      | action deny {A}
         user info: "The attacker can deny some or all functionality and data pertaining to this application/service as well as executed applications."
         ->  containedData.attemptDeny,
             appExecutedApps.attemptDeny,
             sentData.attemptDeny // Sent Data can also be denied
 
-      | specificAccessDelete {A}
+      | action specificAccessDelete {A}
         user info: "The attacker can delete some or all functionality and data pertaining to this application/service as well as executed applications, given the necessary permissions"
         ->  containedData.authorizedDeleteFromApplication,
             sentData.authorizedDeleteFromApplication // Sent Data can be deleted given the necessary permissions
 
-      & denyFromNetworkingAsset @hidden
+      & effect denyFromNetworkingAsset @hidden
         developer info: "This is an intermediate attack step to only allow deny on an application when all the connection rules and networks associated with it are denied, because an app can be serving on many different ports."
         ->  attemptDeny
 
-      & denyFromLockout @hidden
+      & effect denyFromLockout @hidden
         developer info: "This is an intermediate attack step to only trigger deny on an application when all the executing access control roles are locked out."
         ->  attemptDeny
 

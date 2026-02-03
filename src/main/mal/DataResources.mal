@@ -21,51 +21,51 @@ category DataResources {
     asset Information
       user info: "Represents any type of information that might be contained inside Data. This include general purpose information, but also serves as the basis for more specialized types, such as Credentials. Information represents the abstract concept, while Data represent an actual instance of information stored or transmitted digitally."
     {
-      | read
+      | action read
         user info: "The attacker is able to read the information. They may still be unable to extract it, which represents the adversary being able to read it themselves. This is the case if autonomous code is able to read it, but lack the required networking connections to transmit it back to the adversary."
         ->  dataReplicas.read,
             containerData.read
 
-      | write
+      | action write
         user info: "The attacker is able to write the information."
         ->  dataReplicas.write,
             containerData.write,
             dependentApps.fullAccess,
             delete
 
-      | delete
+      | action delete
         user info: "The attacker is able to delete the information."
         ->  dataReplicas.delete,
             containerData.delete,
             deny
 
-      | deny
+      | action deny
         user info: "The attacker is able to deny the information."
         ->  dataReplicas.deny,
             containerData.deny,
             dependentApps.deny
 
-      | extract
+      | action extract
         user info: "The attacker is able to extract the information. This means that they have a path available through which they can transfer the information back to a system that they control."
 
       // The following 5 attack steps are used to implement data replication
-      | attemptReadFromReplica @hidden
+      | effect attemptReadFromReplica @hidden
         developer info: "Reading one replica allows the attacker to read all other replicas as well since the information contained in them is the same."
         ->  read
 
-      & attemptWriteFromReplica @hidden
+      & effect attemptWriteFromReplica @hidden
         developer info: "Information can be overwritten only if all replicas have been overwritten."
         ->  write
 
-      & attemptDeleteFromReplica @hidden
+      & effect attemptDeleteFromReplica @hidden
         developer info: "Information can be deleted only if all replicas have been deleted."
         ->  delete
 
-      & attemptDenyFromReplica @hidden
+      & effect attemptDenyFromReplica @hidden
         developer info: "Information can be denied only if all replicas have been denied."
         ->  deny
 
-      | attemptExtractFromReplica @hidden
+      | effect attemptExtractFromReplica @hidden
         developer info: "The attacker attempts to extract the information."
         ->  extract
     }
@@ -84,7 +84,7 @@ category DataResources {
             reverseReach,
             extract
 
-      | authorizedAccessFromApplication @hidden
+      | effect authorizedAccessFromApplication @hidden
         developer info: "Try to gain access to the data through permissions."
         ->  authorizedReadFromApplication,
             authorizedWriteFromApplication,
@@ -109,88 +109,88 @@ category DataResources {
       let receiverIngoingApplicationConnections = (receiverApp.appConnections \/ receiverApp.ingoingAppConnections)
       let transitNetworkInboundAllowedConnections = (transitNetwork.netConnections \/ transitNetwork.ingoingNetConnections \/ transitNetwork.diodeIngoingNetConnections)
       let transitNetworkOutboundAllowedConnections = (transitNetwork.netConnections \/ transitNetwork.outgoingNetConnections)
-      | bypassPayloadInspectionFromEncryptedData @hidden
+      | action bypassPayloadInspectionFromEncryptedData @hidden
         developer info: "The connection rules that the encrypted data traverse over cannot provide payload inspection since they are assumed to permit encrypted traffic. This implies that the attacker could simply encrypt their own communications to evade inspection."
         ->  (senderOutgoingApplicationConnections() /\ transitNetworkInboundAllowedConnections()).payloadInspectionBypassed,
             (receiverIngoingApplicationConnections() /\ transitNetworkOutboundAllowedConnections()).payloadInspectionBypassed
 
-      & accessUnencryptedData @hidden
+      & action accessUnencryptedData @hidden
         developer info: "If data are unencrypted then access them."
         ->  accessDecryptedData
 
-      & accessUnsignedData @hidden
+      & action accessUnsignedData @hidden
         developer info: "If data are unsigned then alter them."
         ->  accessSpoofedData
 
-      | accessSpoofedData @hidden
+      | effect accessSpoofedData @hidden
         developer info: "Intermediate attack step to only allow effects of 'accessUnsignedData' on data after compromising the signing credentials or signing is disabled."
         ->  applicationRespondConnect,
             successfulWrite
 
-      | accessDecryptedData @hidden
+      | effect accessDecryptedData @hidden
         developer info: "Intermediate attack step to only allow effects of 'accessUnencryptedData' on data after compromising the encryption credentials or encryption is disabled."
         ->  applicationRespondConnect,
             successfulRead,
             successfulWrite,
             successfulDelete
 
-      | attemptApplicationRespondConnect @hidden
+      | effect attemptApplicationRespondConnect @hidden
         developer info: "Intermediate attack step to handle defenses."
         ->  applicationRespondConnect
 
-      & applicationRespondConnect @hidden
+      & action applicationRespondConnect @hidden
         developer info: "In order to perform a respond connect attack the adversary must be able to write the received data."
         ->  senderApp.attemptNetworkConnectFromResponse,
             containedData.applicationRespondConnect
 
-      | authorizedApplicationRespondConnectFromApplication @hidden
+      | effect authorizedApplicationRespondConnectFromApplication @hidden
         developer info: "The adversary can attempt a respond connect attack from an Application, but they still require write permissions in order to perform it."
         ->  authorizedApplicationRespondConnect
 
-      | authorizedApplicationRespondConnectFromIAM @hidden
+      | effect authorizedApplicationRespondConnectFromIAM @hidden
         developer info: "The attacker has obtained the access control permissions required to modify the incoming requests."
         ->  authorizedApplicationRespondConnect
 
-      & authorizedApplicationRespondConnect @hidden
+      & effect authorizedApplicationRespondConnect @hidden
         developer info: "In order to perform a respond connect attack the adversary must be able to write the received data. If they only have specific access on the Application we need to see if they also have the required permissions."
         ->  attemptApplicationRespondConnect
 
-      | attemptRead @hidden
+      | effect attemptRead @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulRead
 
-      & successfulRead @hidden
+      & effect successfulRead @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  read
 
-      | read {C}
+      | action read {C}
         user info: "The attacker can read the data. This means that the data can be used for further attack steps, but they are not necessarily obtained by the attacker. The extract attack step covers the scenario where the attacker actually collects the data."
         ->  containedData.attemptRead,
             information.read,
             replicatedInformation.attemptReadFromReplica,
             extract
 
-      | authorizedReadFromIAM @hidden
+      | effect authorizedReadFromIAM @hidden
         developer info: "The attacker has obtained the access control permissions required to read the data."
         ->  authorizedRead
 
-      | authorizedReadFromApplication @hidden
+      | effect authorizedReadFromApplication @hidden
         developer info: "The attacker can reach the data via an Application, but they still require the adequate permissions to read it."
         ->  authorizedRead
 
-      & authorizedRead @hidden
+      & effect authorizedRead @hidden
         developer info: "An attacker is able to read the Data through authorized permissions, this requires both access to the Data and the adequate permissions."
         ->  attemptRead
 
-      | attemptWrite @hidden
+      | effect attemptWrite @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulWrite
 
-      & successfulWrite @hidden
+      & effect successfulWrite @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  write
 
-      | write {I}
+      | action write {I}
         user info: "The attacker can write to the location of the data, effectively modifying or deleting it."
         ->  containedData.attemptWrite,
             information.write,
@@ -198,74 +198,74 @@ category DataResources {
             dependentApps.fullAccess,
             attemptDelete
 
-      | authorizedWriteFromIAM @hidden
+      | effect authorizedWriteFromIAM @hidden
         developer info: "The attacker has obtained the access control permissions required to write the data."
         ->  authorizedWrite
 
-      | authorizedWriteFromApplication @hidden
+      | effect authorizedWriteFromApplication @hidden
         developer info: "The attacker can reach the data via an Application, but they still require the adequate permissions to write it."
         ->  authorizedWrite
 
-      & authorizedWrite @hidden
+      & effect authorizedWrite @hidden
         developer info: "An attacker is able to write the Data through authorized permissions, this requires both access to the Data and the adequate permissions."
         ->  attemptWrite
 
-      | attemptDelete @hidden
+      | effect attemptDelete @hidden
         developer info: "Intermediate attack step to allow for defenses."
         -> successfulDelete
 
-      & successfulDelete @hidden
+      & effect successfulDelete @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  delete
 
-      | delete {I,A}
+      | action delete {I,A}
         user info: "The attacker can delete the data."
         ->  containedData.attemptDelete,
             information.delete,
             replicatedInformation.attemptDeleteFromReplica,
             attemptDeny
 
-      | authorizedDeleteFromIAM @hidden
+      | effect authorizedDeleteFromIAM @hidden
         developer info: "The attacker has obtained the access control permissions required to delete the data."
         ->  authorizedDelete
 
-      | authorizedDeleteFromApplication @hidden
+      | effect authorizedDeleteFromApplication @hidden
         developer info: "The attacker can reach the data via an Application, but they still require the adequate permissions to delete it."
         ->  authorizedDelete
 
-      & authorizedDelete @hidden
+      & effect authorizedDelete @hidden
         developer info: "An attacker is able to delete the Data through authorized permissions, this requires both access to the Data and the adequate permissions."
         ->  attemptDelete
 
-      | attemptDeny @hidden
+      | effect attemptDeny @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulDeny
 
-      & successfulDeny @hidden
+      & effect successfulDeny @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  deny
 
-      | deny {A}
+      | action deny {A}
         user info: "If a DoS is performed data are denied, it has the same effects as deleting the data."
         ->  containedData.attemptDeny,
             information.deny,
             replicatedInformation.attemptDenyFromReplica,
             dependentApps.deny
 
-      & denyFromLockout @hidden
+      & effect denyFromLockout @hidden
         developer info: "This is an intermediate attack step to only trigger deny on data when all the access control roles that can read them are locked out."
         ->  attemptDeny
 
-      | attemptReverseReach @hidden
+      | effect attemptReverseReach @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  reverseReach
 
-      & reverseReach @hidden
+      & effect reverseReach @hidden
         developer info: "Reverse reach for Data is used to determine whether or not the data can be transferred to attacker."
         ->  extract,
             containedData.attemptReverseReach
 
-      & extract
+      & action extract
         user info: "The attacker can extract the data. The read attack step represents just being able to make use of the data for further attack steps without the attacker obtaining it."
         ->  information.extract,
             replicatedInformation.attemptExtractFromReplica

@@ -27,7 +27,7 @@ category Networking {
       let allNetConnections = (netConnections \/ ingoingNetConnections \/ outgoingNetConnections \/ diodeIngoingNetConnections)
       let allowedApplicationConnectionsApplications = (applications \/ allNetConnections().applications)
 
-      | physicalAccess @entrypoint {C, A}
+      | action physicalAccess @entrypoint {C, A}
         user info: "Attacker has physical access on the network. This means they can cut wires/fibers, connect using iLOs, eavesdrop and get proper network access."
         modeler info: "This attack step can be used as an entry point when analyzing scenarios that involve gaining physical access to assets."
         ->  deny,
@@ -92,11 +92,11 @@ category Networking {
             accessNetworkData,
             deny
 
-      | attemptReverseReach @hidden
+      | effect attemptReverseReach @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  reverseReach
 
-      & reverseReach @hidden
+      & effect reverseReach @hidden
         developer info: "Reverse reach is used to determine whether or not the attacker can be reached by the user. Reverse reach propagates toward outgoing or bidirectional communications."
         ->  inboundAllowedConnections().attemptReverseReach,
             applications.attemptReverseReach
@@ -216,13 +216,13 @@ category Networking {
             reverseReach
 
       // All the hidden attack steps below are hidden because they are just used for the internal mechanics of the ConnectionRules
-      | attemptReverseReach @hidden
+      | effect attemptReverseReach @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  reverseReach,
             bypassRestricted,
             bypassPayloadInspection
 
-      & reverseReach @hidden
+      & effect reverseReach @hidden
         developer info: "Reverse reach is used to determine whether or not the attacker can be reached by the user. Reverse reach propagates via outgoing or bidirectional communications."
         ->  senderApplications().attemptReverseReach,
             (networks \/ outNetworks).attemptReverseReach
