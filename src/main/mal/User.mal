@@ -12,6 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * This file has been modified by Sandor Berglund/KTH Royal Institute of Technology, 2026
  */
 
 category User {
@@ -83,7 +85,6 @@ category User {
       | deliverMaliciousRemovableMedia @hidden [Exponential(0.01)]
         developer info: "The user is assumed to connect the removable media containing the malicious code to all of the hardware systems that they have access to. Since this is expected to unwittingly happen as part of their normal operations the attack exposes their regular security context."
         ->  userIds.attemptAssume,
-            physicalZones.hardwareSystems.attemptUnsafeUserActivity,
             hardwareSystems.attemptUnsafeUserActivity
 
       | credentialTheft @hidden [HardAndUncertain]
@@ -100,8 +101,6 @@ category User {
 }
 
 associations {
-  User [users] * <-- ZoneAccess            --> * [physicalZones]   PhysicalZone
-      user info: "A user may have access to different physical zones."
   User [users] * <-- HardwareAccess        --> * [hardwareSystems] Hardware
       user info: "A user may have access to different hardware systems, rigs, or components."
   User [users] * <-- UserAssignedIdentities--> * [userIds]         Identity
