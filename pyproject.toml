@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "corelang"
+name = "minCorelang"
 version = "1.0.0"
 description = "coreLang is a probabilistic modeling and simulation language for the abstract domain of IT. More specifically, it is a domain specific language (DSL) created with MAL (the Meta Attack Language)."
 readme = "README.md"
@@ -26,7 +26,8 @@ classifiers = [
 
 
 dependencies = [
-    "mal-toolbox"
+    "mal-toolbox",
+    "mal-simulator"
 ]
 
 [project.urls]
