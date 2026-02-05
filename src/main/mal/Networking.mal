@@ -57,12 +57,12 @@ category Networking {
         ->  successfulAccessUninspectedFromPhysicalAccess,
             successfulAccessInspectedFromPhysicalAccess
 
-      | attemptAccessUninspectedFromPhysicalAccess @hidden
+      | effect attemptAccessUninspectedFromPhysicalAccess @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  successfulAccessUninspectedFromPhysicalAccess,
             bypassAccessControl
 
-      | attemptAccessInspectedFromPhysicalAccess @hidden
+      | effect attemptAccessInspectedFromPhysicalAccess @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  successfulAccessInspectedFromPhysicalAccess,
             bypassAccessControl
@@ -135,7 +135,7 @@ category Networking {
         developer info: "The Eavesdrop defense is bypassed either because it was not set, the attacker was able to circumvent it through additional effort."
         ->  successfulEavesdrop
 
-      | attemptEavesdrop @hidden
+      | effect attemptEavesdrop @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  successfulEavesdrop,
             bypassEavesdropDefense
@@ -160,7 +160,7 @@ category Networking {
         developer info: "The adversary in the middle defense is bypassed either because it was not set, the attacker was able to circumvent it through additional effort."
         ->  successfulAdversaryInTheMiddle
 
-      | attemptAdversaryInTheMiddle @hidden
+      | effect attemptAdversaryInTheMiddle @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  successfulAdversaryInTheMiddle,
             bypassAdversaryInTheMiddleDefense
@@ -227,22 +227,22 @@ category Networking {
         ->  senderApplications().attemptReverseReach,
             (networks \/ outNetworks).attemptReverseReach
 
-      | attemptAccessNetworksUninspected @hidden
+      | effect attemptAccessNetworksUninspected @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  successfulAccessNetworksUninspected,
             bypassRestricted,
             bypassPayloadInspection
 
-      | attemptAccessNetworksInspected @hidden
+      | effect attemptAccessNetworksInspected @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  successfulAccessNetworksInspected,
             bypassRestricted
 
-      & successfulAccessNetworksUninspected @hidden
+      & effect successfulAccessNetworksUninspected @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  accessNetworksUninspected
 
-      & successfulAccessNetworksInspected @hidden
+      & effect successfulAccessNetworksInspected @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  accessNetworksInspected
 
@@ -255,13 +255,13 @@ category Networking {
         developer info: "Access all networks that are associated with this ConnectionRule, but taking into account that the traffic payload is being inspected."
         ->  (networks  \/ inNetworks  \/ diodeInNetworks).accessInspected
 
-      | attemptConnectToApplicationsUninspected @hidden
+      | effect attemptConnectToApplicationsUninspected @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  connectToApplicationsUninspected,
             bypassRestricted,
             bypassPayloadInspection
 
-      | attemptConnectToApplicationsInspected @hidden
+      | effect attemptConnectToApplicationsInspected @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  connectToApplicationsInspected,
             bypassRestricted
@@ -275,7 +275,7 @@ category Networking {
         developer info: "Connect to all the (server) Applications that are associated with this ConnectionRule, but taking into account that the traffic payload is being inspected. This attack step is used to allow legitimate traffic even when payload inspection is enabled on the connection."
         ->  receiverApplications().networkConnectInspected
 
-      | attemptDeny @hidden
+      | effect attemptDeny @hidden
         developer info: "Intermediate attack step to allow for defenses and trigger bypasses."
         ->  deny,
             bypassRestricted

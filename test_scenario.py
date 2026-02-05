@@ -39,6 +39,9 @@ else:
     lines = [line.strip() for line in lines if not line.startswith('#')]
     attacker_name = list(simulator.agent_states.keys())[0]
 
+    green_lines = 0
+    yellow_lines = 0
+
     state = simulator.reset()[attacker_name]
     for line in lines:
         try:
@@ -46,10 +49,13 @@ else:
         except StopIteration:
             if line in state2performed_node_names(state):
                 print_yellow(line)
+                yellow_lines += 1
             else:
                 print_red(line)
             continue
         state = simulator.step({attacker_name: [node]})[attacker_name]
         print_green(line)
+        green_lines += 1
  
-        
+    print(f"Green lines: {green_lines}")
+    print(f"Yellow lines: {yellow_lines}")

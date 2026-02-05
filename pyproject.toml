@@ -27,7 +27,7 @@ classifiers = [
 
 dependencies = [
     "mal-toolbox",
-    "mal-simulator"
+    "mal-simulator@git+https://github.com/mal-lang/mal-simulator.git"
 ]
 
 [project.urls]

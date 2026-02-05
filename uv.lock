@@ -173,8 +173,8 @@ wheels = [
 
 [[package]]
 name = "mal-simulator"
-version = "2.2.0"
-source = { registry = "https://pypi.org/simple" }
+version = "2.3.0"
+source = { git = "https://github.com/mal-lang/mal-simulator.git#f3f14b5d9689aa5870f85b24c252109d09526aa1" }
 dependencies = [
     { name = "mal-toolbox" },
     { name = "networkx", version = "3.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -185,10 +185,6 @@ dependencies = [
     { name = "requests" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/47/82/a85080da7fce033b862c09b202be6eae4a8194f3ec59d129909bac4ac53f/mal_simulator-2.2.0.tar.gz", hash = "sha256:bde347721538d5cd8f1a8da0feb3625ebc65e8ad4241c277640ae5e9134eb538", size = 80712, upload-time = "2026-01-27T10:01:54.424Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/aa/bd/f5653ae0a41c053e2eef5d385da1e9617fe78737142bc8360ade74331797/mal_simulator-2.2.0-py3-none-any.whl", hash = "sha256:88f1c10ad81b614f9ba0eab891ce83e2a19b74c8ebdddf873b9c4ae895013879", size = 86908, upload-time = "2026-01-27T10:01:52.987Z" },
 ]
 
 [[package]]
@@ -223,7 +219,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "mal-simulator" },
+    { name = "mal-simulator", git = "https://github.com/mal-lang/mal-simulator.git" },
     { name = "mal-toolbox" },
 ]
 
