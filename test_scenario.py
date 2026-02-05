@@ -3,6 +3,19 @@ from malsim import Scenario, MalSimulator
 from malsim.config import MalSimulatorSettings
 from malsim.config.sim_settings import RewardMode, TTCMode
 from maltoolbox.attackgraph import AttackGraphNode
+from malsim.mal_simulator.agent_state import MalSimAgentState
+
+def print_red(text):
+    print(f"\033[91m{text}\033[0m")
+
+def print_green(text):
+    print(f"\033[92m{text}\033[0m")
+
+def print_yellow(text):
+    print(f"\033[93m{text}\033[0m")
+
+def state2performed_node_names(state: MalSimAgentState) -> list[str]:
+    return [node.full_name for node in state.performed_nodes]
 
 first_arg = sys.argv[1] if len(sys.argv) > 1 else None
 scenario = Scenario.load_from_file(first_arg)
@@ -31,15 +44,12 @@ else:
         try:
             node: AttackGraphNode = next(node for node in state.action_surface if node.full_name == line)
         except StopIteration:
-            print(f"Skipping {line}")
-            continue
-        if node.causal_mode == "action":
-            state = simulator.step({attacker_name: [node]})[attacker_name]
-            if node in state.performed_nodes:
-                print(f"Node {node.full_name} performed")
+            if line in state2performed_node_names(state):
+                print_yellow(line)
             else:
-                print(f"Node {node.full_name} not performed")
-                raise Exception(f"Node {node.full_name} not performed")
-        elif node.causal_mode == "effect":
-            print(f"Skipping effect {node.full_name}")
+                print_red(line)
+            continue
+        state = simulator.step({attacker_name: [node]})[attacker_name]
+        print_green(line)
+ 
         
