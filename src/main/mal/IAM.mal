@@ -27,15 +27,15 @@ category IAM {
         ->  successfulAssume,
             successfulLockout
 
-      | attemptAssume @hidden
+      | effect attemptAssume @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulAssume
 
-      & successfulAssume @hidden
+      & effect successfulAssume @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  assume
 
-      | assume
+      | action assume
         user info: "When an attacker is able to assume an IAM asset the privileges associated with it can always be exploited, other behaviour is asset specific."
         ->  execPrivApps.authenticate,
             highPrivApps.authenticate,
@@ -46,23 +46,23 @@ category IAM {
             deletePrivData.authorizedDeleteFromIAM,
             managedIAMs.attemptAssume
 
-      | deny
+      | effect deny
         user info: "Denying Identity, Group, or Privileges means that they are unavailable to legitimate users and which may be locked out as a result."
         +>  attemptLockout
 
-      | write
+      | action write
         user info: "Overwriting Identity, Group, or Privileges means that the attacker is able to assume them."
         +>  attemptAssume
 
-      | attemptLockout @hidden
+      | effect attemptLockout @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulLockout
 
-      & successfulLockout @hidden
+      & effect successfulLockout @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  lockout
 
-      | lockout {A}
+      | action lockout {A}
         user info: "The Identity, Group, or Privileges has been locked out and cannot be used by legitimate users. This means that the applications that they can execute and data they can read might also be denied if all of the access roles that could execute or read them, respectively, have been locked out."
         ->  execPrivApps.denyFromLockout,
             readPrivData.denyFromLockout
@@ -76,16 +76,16 @@ category IAM {
         user info: "Prevent unsafe user activity too if the Identity is assumed to not exist."
         +>  successfulUnsafeUserActivity
 
-      | assume {C,I,A}
+      | action assume {C,I,A}
         user info: "After authentication or compromise of an account/identity, assume its privileges."
         developer info: "This is both legitimate and illegitimate access! Also assume all the privileges of the parent identities (on the above level/inherited by this identity) because those represent the group of (inherited) roles."
         +>  parentId.attemptAssume
 
-      & lockoutFromCredentials @hidden
+      & effect lockoutFromCredentials @hidden
         developer info: "Only lockout an identity if all of the Credentials that could be used to authenticate have been denied."
         ->  attemptLockout
 
-      | lockout
+      | action lockout
         user info: "If all of the Identities belonging to a Group are lockedout we assume that the Group as a whole is lockedout."
 
       !E missingUser @hidden
@@ -93,15 +93,15 @@ category IAM {
         <-  users
         ->  credentials.weakCredentials
 
-      | attemptUnsafeUserActivity @hidden
+      | effect attemptUnsafeUserActivity @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  successfulUnsafeUserActivity
 
-      & successfulUnsafeUserActivity @hidden
+      & effect successfulUnsafeUserActivity @hidden
         developer info: "Intermediate attack step to model defenses."
         ->  unsafeUserActivity
 
-      | unsafeUserActivity
+      | effect unsafeUserActivity
         user info: "Propagate unsafe user activity to any Applications or subset of privileges associated with this Identity."
         ->  execPrivApps.attemptUnsafeUserActivity,
             highPrivApps.attemptUnsafeUserActivity,
@@ -129,36 +129,36 @@ category IAM {
         user info: "Describes if the credentials cannot be phished(they are biometric, e.g. fingerprints or iris scans, or physical, e.g. access cards or keys, elements)."
         ->  credentialTheft
 
-      | read
+      | action read
         user info: "If the attacker is able to read the information containing credentials we assume that they are compromised."
         +> attemptUse
 
-      | write
+      | action write
         user info: "If the attacker is able to write the information containing credentials we assume that they have changed them for the authentication process."
         +> attemptUse
 
-      | deny
+      | effect deny
         user info: "If the attacker is able to deny the information containing credentials we assume that they have denied them for the authentication process."
         +> identities.lockoutFromCredentials
 
-      | useLeakedCredentials [EasyAndCertain]
+      | action useLeakedCredentials [EasyAndCertain]
         user info: "If the password/credential is leaked to some location, it can then be available to the attacker and therefore it can be used."
         ->  attemptUse
 
-      | attemptCredentialsReuse @hidden
+      | effect attemptCredentialsReuse @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  credentialsReuse,
             requiredFactors.attemptCredentialsReuse
 
-      & credentialsReuse @hidden
+      & action credentialsReuse @hidden
         developer info: "The user is reusing credentials which means that the attacker is able to compromise all of the non-unique credentials associated with this user."
         ->  attemptUse
 
-      | attemptUse @hidden
+      | effect attemptUse @hidden
         developer info: "In order to use these credentials the attacker may require additional factors."
         ->  use
 
-      & use {C}
+      & action use {C}
         user info: "The attacker is using the credentials to perform a legitimate authentication."
         ->  identities.attemptAssume,
             encryptedData.accessDecryptedData,
@@ -168,20 +168,20 @@ category IAM {
             hashes.attemptUse, // the hashes generated based on these credentials are also compromised as the attacker is assumed to know which hashing functions were used
             origCreds.guessCredentialsFromHash
 
-      | attemptPropagateOneCredentialCompromised @hidden
+      | effect attemptPropagateOneCredentialCompromised @hidden
         developer info: "Intermediate attack step to allow for defenses."
         ->  propagateOneCredentialCompromised
 
-      & propagateOneCredentialCompromised @hidden
+      & effect propagateOneCredentialCompromised @hidden
         developer info: "Intermediate step used to propagate the credentials reuse attack step."
         ->  credentials*.identities.users.oneCredentialCompromised
 
-      | attemptCredentialTheft @hidden
+      | effect attemptCredentialTheft @hidden
         developer info: "The attacker is attempting to access the credentials."
         ->  credentialTheft,
             requiredFactors.attemptCredentialTheft
 
-      & credentialTheft @hidden
+      & action credentialTheft @hidden
         developer info: "The attacker is able to steal the credentials."
         ->  attemptUse
 
@@ -200,11 +200,11 @@ category IAM {
         <-  hashes
         ->  guessCredentialsFromHash
 
-      | guessCredentialsFromHash @hidden
+      | effect guessCredentialsFromHash @hidden
         developer info: "If hashes are associated with this Credentials asset the assumption is that one of those hashes is required by the attacker to be able to perform a guessing attack."
         ->  guessCredentials
 
-      & guessCredentials @hidden [HardAndUncertain]
+      & action guessCredentials @hidden [HardAndUncertain]
         developer info: "The attacker can try to just guess a set of credentials. The likelihood of succeeding is dependent on how strong the credentials are."
         modeler info: "The guessability of the Credentials is influenced by the notGuessable defense on this asset and the securityAwareness defense on the User associated with the Identity that these Credentials belong to. If either the User or Identity associations are missing the assumption is made that the crentials are guessable and only the notGuessable defense would play a role in restricting this attack step."
         ->  attemptUse

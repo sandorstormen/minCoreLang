@@ -1,0 +1,324 @@
+lang_file: ../org.mal-lang.minCoreLang-1.0.0.mar
+agents:
+  APT29:
+    type: attacker
+    agent_class: "KeyboardAgent"
+    entry_points:
+    - Legitimate User:attemptSocialEngineering
+    - LAN:accessUninspected
+    goals:
+    - Web Passwords:extract
+    - PFX Certificate:extract
+    - Office Documents:extract
+rewards:
+  by_asset_name:
+    Web Passwords:
+      extract: 100.0
+    PFX Certificate:
+      extract: 100.0
+    Office Documents:
+      extract: 100.0
+model:
+  metadata:
+    name: apt29_scenario1
+    langVersion: 1.0.0
+    langID: org.mal-lang.coreLang
+    malVersion: 0.1.0-SNAPSHOT
+    MAL-Toolbox Version: 1.1.1
+    info: Created by the mal-toolbox model python module.
+  assets:
+    1:
+      name: Server
+      type: Hardware
+      associated_assets:
+        sysExecutedApps:
+          6: Windows Server
+      extras:
+        position:
+          x: -585.0
+          y: -1104.0
+    2:
+      name: Workstation 1
+      type: Hardware
+      associated_assets:
+        sysExecutedApps:
+          5: Win10 1903 Workstation 1
+      extras:
+        position:
+          x: -195.0
+          y: -763.5
+    3:
+      name: Workstation 2
+      type: Hardware
+      associated_assets:
+        sysExecutedApps:
+          4: Win10 1903 Workstation 2
+        users:
+          33: Legitimate User
+      extras:
+        position:
+          x: -1098.0
+          y: 192.0
+    4:
+      name: Win10 1903 Workstation 2
+      type: Application
+      associated_assets:
+        hostHardware:
+          3: Workstation 2
+        appExecutedApps:
+          13: Google Chrome
+        containedData:
+          26: Registry
+        highPrivAppIAMs:
+          34: DC Admin
+          10: Local Admin 2
+        lowPrivAppIAMs:
+          31: Local User 2
+        vulnerabilities:
+          19: UAC Bypass
+        outgoingAppConnections:
+          9: CR
+        appConnections:
+          35: Local
+      extras:
+        position:
+          x: -778.5
+          y: -45.0
+    5:
+      name: Win10 1903 Workstation 1
+      type: Application
+      associated_assets:
+        hostHardware:
+          2: Workstation 1
+        containedData:
+          30: Office Documents
+        highPrivAppIAMs:
+          29: Local Admin 1
+          34: DC Admin
+        outgoingAppConnections:
+          9: CR
+        appConnections:
+          35: Local
+      extras:
+        position:
+          x: -199.5
+          y: -609.0
+    6:
+      name: Windows Server
+      type: Application
+      associated_assets:
+        hostHardware:
+          1: Server
+        highPrivAppIAMs:
+          34: DC Admin
+        outgoingAppConnections:
+          9: CR
+        appConnections:
+          35: Local
+      extras:
+        position:
+          x: -586.5
+          y: -955.5
+    7:
+      name: LAN
+      type: Network
+      associated_assets:
+        netConnections:
+          9: CR
+      extras:
+        position:
+          x: -976.5
+          y: -924.0
+    9:
+      name: CR
+      type: ConnectionRule
+      associated_assets:
+        outApplications:
+          4: Win10 1903 Workstation 2
+          5: Win10 1903 Workstation 1
+          6: Windows Server
+        networks:
+          7: LAN
+      extras:
+        position:
+          x: -730.0
+          y: -620.0
+    10:
+      name: Local Admin 2
+      type: Identity
+      associated_assets:
+        highPrivApps:
+          4: Win10 1903 Workstation 2
+        credentials:
+          15: Local Admin Creds
+      extras:
+        position:
+          x: -162.0
+          y: 19.5
+    13:
+      name: Google Chrome
+      type: Application
+      associated_assets:
+        hostApp:
+          4: Win10 1903 Workstation 2
+        containedData:
+          22: Chrome password manager
+      extras:
+        position:
+          x: -1327.5
+          y: -51.0
+    15:
+      name: Local Admin Creds
+      type: Credentials
+      defenses:
+        notGuessable: 0.0
+      associated_assets:
+        identities:
+          29: Local Admin 1
+          10: Local Admin 2
+        hashes:
+          25: NTLM Hash
+      extras:
+        position:
+          x: 322.5
+          y: 37.5
+    19:
+      name: UAC Bypass
+      type: SoftwareVulnerability
+      defenses:
+        lowPrivilegesRequired: 1.0
+        networkAccessRequired: 1.0
+      associated_assets:
+        application:
+          4: Win10 1903 Workstation 2
+      extras:
+        position:
+          x: -936.0
+          y: -238.5
+    22:
+      name: Chrome password manager
+      type: Data
+      associated_assets:
+        containingApp:
+          13: Google Chrome
+        information:
+          27: Web Passwords
+          28: PFX Certificate
+      extras:
+        position:
+          x: -1326.0
+          y: -225.0
+    25:
+      name: NTLM Hash
+      type: Credentials
+      associated_assets:
+        origCreds:
+          15: Local Admin Creds
+        containerData:
+          26: Registry
+      extras:
+        position:
+          x: 129.0
+          y: -132.0
+    26:
+      name: Registry
+      type: Data
+      associated_assets:
+        containingApp:
+          4: Win10 1903 Workstation 2
+        information:
+          25: NTLM Hash
+      extras:
+        position:
+          x: -311.0
+          y: -132.0
+    27:
+      name: Web Passwords
+      type: Credentials
+      associated_assets:
+        containerData:
+          22: Chrome password manager
+      extras:
+        position:
+          x: -1182.0
+          y: -409.5
+    28:
+      name: PFX Certificate
+      type: Credentials
+      associated_assets:
+        containerData:
+          22: Chrome password manager
+      extras:
+        position:
+          x: -1468.5
+          y: -406.5
+    29:
+      name: Local Admin 1
+      type: Identity
+      associated_assets:
+        highPrivApps:
+          5: Win10 1903 Workstation 1
+        credentials:
+          15: Local Admin Creds
+      extras:
+        position:
+          x: 463.5
+          y: -130.5
+    30:
+      name: Office Documents
+      type: Data
+      associated_assets:
+        containingApp:
+          5: Win10 1903 Workstation 1
+      extras:
+        position:
+          x: 232.5
+          y: -610.5
+    31:
+      name: Local User 2
+      type: Identity
+      associated_assets:
+        lowPrivApps:
+          4: Win10 1903 Workstation 2
+        users:
+          33: Legitimate User
+      extras:
+        position:
+          x: -670.5
+          y: 151.5
+    33:
+      name: Legitimate User
+      type: User
+      associated_assets:
+        hardwareSystems:
+          3: Workstation 2
+        userIds:
+          31: Local User 2
+      extras:
+        position:
+          x: -732.0
+          y: 339.0
+    34:
+      name: DC Admin
+      type: Identity
+      associated_assets:
+        highPrivApps:
+          4: Win10 1903 Workstation 2
+          5: Win10 1903 Workstation 1
+          6: Windows Server
+      extras:
+        position:
+          x: -52.5
+          y: -273.0
+    35:
+      name: Local
+      type: ConnectionRule
+      associated_assets:
+        applications:
+          4: Win10 1903 Workstation 2
+          5: Win10 1903 Workstation 1
+          6: Windows Server
+      extras:
+        position:
+          x: -453.0
+          y: -289.0
